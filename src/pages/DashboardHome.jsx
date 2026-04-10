@@ -36,22 +36,37 @@ export default function DashboardHome() {
 
   async function fetchGlobalInsights() {
     try {
-      const { data: tickets } = await supabase.from('tickets').select('price_paid');
-      const { data: cargo } = await supabase.from('cargo_shipments').select('price_total');
-      const { data: profiles } = await supabase.from('profiles').select('id');
-      const { data: locations } = await supabase.from('locations').select('id');
-      const { data: routes } = await supabase.from('routes').select('id');
+      // Efficiently fetch counts and raw data for sum
+      const [
+        { data: tickets },
+        { data: cargo },
+        { count: userCount },
+        { count: branchCount },
+        { count: routeCount }
+      ] = await Promise.all([
+        supabase.from('tickets').select('price_paid'),
+        supabase.from('cargo_shipments').select('price_total'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('locations').select('*', { count: 'exact', head: true }),
+        supabase.from('routes').select('*', { count: 'exact', head: true })
+      ]);
 
       const tRev = tickets?.reduce((a, b) => a + Number(b.price_paid || 0), 0) || 0;
       const cRev = cargo?.reduce((a, b) => a + Number(b.price_total || 0), 0) || 0;
 
       setStats({
-        totalRev: tRev + cRev, ticketSales: tRev, cargoSales: cRev,
-        userCount: profiles?.length || 0, cargoCount: cargo?.length || 0,
-        ticketCount: tickets?.length || 0, branchCount: locations?.length || 0,
-        activeRoutes: routes?.length || 0
+        totalRev: tRev + cRev,
+        ticketSales: tRev,
+        cargoSales: cRev,
+        userCount: userCount || 0,
+        cargoCount: cargo?.length || 0,
+        ticketCount: tickets?.length || 0,
+        branchCount: branchCount || 0,
+        activeRoutes: routeCount || 0
       });
-    } catch (error) { console.error("Sync error:", error); }
+    } catch (error) {
+      console.error("Sync error:", error);
+    }
   }
 
   async function fetchTableData() {
@@ -85,47 +100,47 @@ export default function DashboardHome() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Safaari Admin</h1>
-          <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">Global Dashboard & Financial Controller</p>
+          <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">Xogta Guud & Maamulka Maaliyadda</p>
         </div>
         <button
           onClick={() => setIsExportModalOpen(true)}
           className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl shadow-gray-200"
         >
-          <Layers size={18} /> Advanced Data Export
+          <Layers size={18} /> La Degida Xogta (Export)
         </button>
       </div>
 
       {/* FINANCIAL INSIGHTS SECTION */}
       <div className="space-y-6">
-        <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Financial Reporting</h2>
+        <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Warbixinta Maaliyadda</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <IncomeCard
-            label="Total Ecosystem Revenue"
+            label="Dakhliga Guud ee Shirkada"
             value={`$${stats.totalRev.toLocaleString()}`}
             type="GLOBAL"
-            detail={`${stats.ticketCount + stats.cargoCount} Total Transactions`}
+            detail={`${stats.ticketCount + stats.cargoCount} Isugeynta Dhaqdhaqaaqa`}
           />
           <IncomeCard
-            label="Ticket Sales Income"
+            label="Dakhliga Iibka Tikidhada"
             value={`$${stats.ticketSales.toLocaleString()}`}
             type="TICKETS"
-            detail={`${stats.ticketCount} Passenger Seats Sold`}
+            detail={`${stats.ticketCount} Kuraas La Iibiyay`}
           />
           <IncomeCard
-            label="Cargo Logistics Income"
+            label="Dakhliga Xamuulka"
             value={`$${stats.cargoSales.toLocaleString()}`}
             type="CARGO"
-            detail={`${stats.cargoCount} Shipments Processed`}
+            detail={`${stats.cargoCount} Xamuul La Diray`}
           />
         </div>
       </div>
 
       {/* MINI STATS GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <MiniStat label="Active Travelers" value={stats.userCount} icon={<Users />} />
-        <MiniStat label="Hubs & Branches" value={stats.branchCount} icon={<MapPin />} />
-        <MiniStat label="Network Routes" value={stats.activeRoutes} icon={<BarChart3 />} />
-        <MiniStat label="Live Tickets" value={stats.ticketCount} icon={<Ticket />} />
+        <MiniStat label="Rakaabka Safarka ah" value={stats.userCount} icon={<Users />} />
+        <MiniStat label="Xarumaha & Xafiisyada" value={stats.branchCount} icon={<MapPin />} />
+        <MiniStat label="Marinnada Isku-xirka" value={stats.activeRoutes} icon={<BarChart3 />} />
+        <MiniStat label="Tikidhada Goosman" value={stats.ticketCount} icon={<Ticket />} />
       </div>
 
       {/* DATABASE EXPLORER */}
@@ -136,8 +151,8 @@ export default function DashboardHome() {
               <Box className="text-white" size={32} />
             </div>
             <div>
-              <h2 className="text-3xl font-black uppercase tracking-tighter">Database Explorer</h2>
-              <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-1">Real-time Table Access: {activeTable}</p>
+              <h2 className="text-3xl font-black uppercase tracking-tighter">Xog-baaraha Nidaamka</h2>
+              <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-1">Geliitaanka Tooska ah ee Shaxda: {activeTable}</p>
             </div>
           </div>
 
@@ -146,7 +161,7 @@ export default function DashboardHome() {
               <Search className="absolute left-4 top-3.5 text-gray-500" size={20} />
               <input
                 type="text"
-                placeholder="Query current table..."
+                placeholder="Raadi xogta shaxda..."
                 className="bg-gray-800 text-white pl-12 pr-6 py-4 rounded-2xl border-none w-full focus:ring-2 focus:ring-blue-500 text-sm font-bold"
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -155,7 +170,7 @@ export default function DashboardHome() {
               onClick={() => exportData(data, activeTable, 'csv')}
               className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 transition-all shadow-xl shadow-black/20 shrink-0"
             >
-              <FileDown size={18} /> Export CSV
+              <FileDown size={18} /> Soo Deji CSV
             </button>
           </div>
         </div>
@@ -176,9 +191,9 @@ export default function DashboardHome() {
           <table className="w-full text-left">
             <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
               <tr>
-                <th className="px-10 py-6">Unique Identifier</th>
-                <th className="px-10 py-6">Primary Information</th>
-                <th className="px-10 py-6 text-right">Quick Download</th>
+                <th className="px-10 py-6">Xogta Aqoonsiga Gaarka Ah</th>
+                <th className="px-10 py-6">Isku-xiraha Dhaqdhaqaaqa</th>
+                <th className="px-10 py-6 text-right">La Deg Deg Deg Ah</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -188,9 +203,9 @@ export default function DashboardHome() {
                     <span className="font-mono text-gray-400 text-[10px] bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">{item.id}</span>
                   </td>
                   <td className="px-10 py-6">
-                    <p className="font-bold text-gray-800 text-lg uppercase tracking-tight">{item.full_name || item.sender_name || item.passenger_name || item.name || 'Anonymous Entry'}</p>
+                    <p className="font-bold text-gray-800 text-lg uppercase tracking-tight">{item.full_name || item.sender_name || item.passenger_name || item.name || 'Soo-geliye Aan La Aqoon'}</p>
                     <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-1 opacity-70">
-                      {item.email || item.phone || item.tracking_number || item.ticket_code || 'No Primary Contact'}
+                      {item.email || item.phone || item.tracking_number || item.ticket_code || 'Ma Jiro Xiriir Koowaad'}
                     </p>
                   </td>
                   <td className="px-10 py-6 text-right">
@@ -207,11 +222,11 @@ export default function DashboardHome() {
           </table>
           {loading && <div className="p-32 text-center flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="font-black text-gray-400 uppercase text-[10px] tracking-widest animate-pulse">Syncing Global Database...</p>
+            <p className="font-black text-gray-400 uppercase text-[10px] tracking-widest animate-pulse">La Xiriiraya Xogta Guud...</p>
           </div>}
           {!loading && filteredData.length === 0 && (
             <div className="p-32 text-center">
-              <p className="font-black text-gray-300 uppercase text-xs tracking-widest">No matching entries found in {activeTable}</p>
+              <p className="font-black text-gray-300 uppercase text-xs tracking-widest">Wax xog ah lagama helin shaxdan {activeTable}</p>
             </div>
           )}
         </div>

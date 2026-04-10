@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Bell, Send, Trash2, Info, Loader2 } from 'lucide-react';
+import { Bell, Send, Trash2, Info, Loader2, Smartphone, User, Users } from 'lucide-react';
 
 const NewsManager = () => {
   const [title, setTitle] = useState('');
@@ -9,6 +9,9 @@ const NewsManager = () => {
   const [loading, setLoading] = useState(false);
   const [newsList, setNewsList] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [targetUserId, setTargetUserId] = useState('all'); // 'all' or specific user ID
+  const [sendSMS, setSendSMS] = useState(false);
 
   const categoryStyles = {
     'Sicir-dhimis': { icon: 'pricetag-outline', color: '#ef4444', bgColor: '#fef2f2' },
@@ -18,7 +21,13 @@ const NewsManager = () => {
 
   useEffect(() => {
     fetchNews();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    const { data } = await supabase.from('profiles').select('id, full_name, phone').order('full_name');
+    setUsers(data || []);
+  };
 
   const fetchNews = async () => {
     setFetching(true);
@@ -45,6 +54,7 @@ const NewsManager = () => {
     const style = categoryStyles[type];
 
     try {
+      // 1. Create the App Notification record
       const { error } = await supabase.from('news').insert([{
         title,
         content,
@@ -52,13 +62,43 @@ const NewsManager = () => {
         icon: style.icon,
         color: style.color,
         bg_color: style.bgColor,
+        user_id: targetUserId === 'all' ? null : targetUserId
       }]);
 
       if (error) throw error;
 
+      // 2. Handle SMS if enabled
+      if (sendSMS) {
+        let targets = [];
+        if (targetUserId === 'all') {
+          targets = users.filter(u => u.phone);
+        } else {
+          const single = users.find(u => u.id === targetUserId);
+          if (single?.phone) targets = [single];
+        }
+
+        if (targets.length > 0) {
+          // In a real production app with thousands of users, 
+          // you would use a batching service or an Edge Function that handles the loop.
+          // For now, we'll suggest a bulk send or loop through them.
+          console.log(`Sending SMS to ${targets.length} users...`);
+          
+          for (const target of targets) {
+            await supabase.functions.invoke('send-sms', {
+              body: { 
+                phone: target.phone, 
+                message: `${title}: ${content}`,
+                event: 'broadcast_news' 
+              },
+            });
+          }
+        }
+      }
+
       alert("Si guul leh ayaa loo daabacay!");
       setTitle('');
       setContent('');
+      setSendSMS(false);
       fetchNews();
     } catch (err) {
       alert("Error: " + err.message);
@@ -88,38 +128,70 @@ const NewsManager = () => {
         <div className="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
           <h2 className="text-lg font-bold mb-4">Daabac Cusub</h2>
           <form onSubmit={handlePublish} className="space-y-4">
-            <select 
-              value={type} 
-              onChange={(e) => setType(e.target.value)}
-              className="w-full p-3 rounded-xl border bg-gray-50 border-gray-200 outline-none focus:border-blue-500"
-            >
-              <option value="Wararkii ugu dambeeyey">Wararka (General)</option>
-              <option value="Sicir-dhimis">Sicir-dhimis (Discount)</option>
-              <option value="Xamuulka">Xamuulka (Cargo)</option>
-            </select>
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-4">
+              <p className="text-blue-800 text-sm font-medium flex items-center gap-2">
+                <Info size={16} /> 
+                Farriintaadu waxay u dhici doontaa sidii ogeysiis barnaamijka dhexdiisa ah (App Notification).
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase ml-1">Cida loo dirayo (Target)</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                <select 
+                  value={targetUserId} 
+                  onChange={(e) => setTargetUserId(e.target.value)}
+                  className="w-full pl-10 p-3 rounded-xl border bg-gray-50 border-gray-200 outline-none focus:border-blue-500 appearance-none"
+                >
+                  <option value="all">Dhammaan Macaamiisha</option>
+                  <optgroup label="Macaamiisha">
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.full_name || u.phone}</option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+            </div>
 
             <input 
               type="text" 
-              placeholder="Cinwaanka (Title)"
-              className="w-full p-3 rounded-xl border border-gray-200"
+              placeholder="Cinwaanka Farriinta"
+              className="w-full p-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
 
             <textarea 
-              placeholder="Warkaaga halkan ku qor..."
-              className="w-full p-3 rounded-xl border border-gray-200 h-32"
+              placeholder="Farriintaada halkan ku qor..."
+              className="w-full p-3 rounded-xl border border-gray-200 h-32 outline-none focus:border-blue-500"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
 
+            <div 
+              onClick={() => setSendSMS(!sendSMS)}
+              className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${sendSMS ? 'border-blue-600 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}
+            >
+              <div className="flex items-center gap-3">
+                <Smartphone className={sendSMS ? 'text-blue-600' : 'text-gray-400'} />
+                <div>
+                  <p className={`font-bold text-sm ${sendSMS ? 'text-blue-900' : 'text-gray-500'}`}>U dir SMS ahaan (Taleefanka)</p>
+                  <p className="text-[10px] text-gray-400">Farriinta waxay u dhacaysaa sidii fariin taleefan oo caadi ah.</p>
+                </div>
+              </div>
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${sendSMS ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
+                {sendSMS && <div className="w-2 h-2 bg-white rounded-full" />}
+              </div>
+            </div>
+
             <button 
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000066] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="animate-spin" /> : <Send size={18} />}
-              Daabac Hadda
+              {loading ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+              {loading ? 'Diraya...' : 'Dir Farriinta'}
             </button>
           </form>
         </div>
@@ -128,7 +200,7 @@ const NewsManager = () => {
         <div className="lg:col-span-8 space-y-4">
           <h2 className="text-lg font-bold">Wararkii Hore</h2>
           {fetching ? (
-            <p className="text-center py-10 text-gray-400">Loading news...</p>
+            <p className="text-center py-10 text-gray-400">Wararka ayaa soo kacaya...</p>
           ) : newsList.length === 0 ? (
             <div className="bg-white p-10 rounded-2xl text-center border border-dashed">
               <p className="text-gray-400">Wax warar ah ma jiraan.</p>

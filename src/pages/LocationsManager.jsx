@@ -50,13 +50,13 @@ export default function LocationsManager() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800">Manage Cities</h1>
-        <p className="text-sm text-gray-500">Add destinations for your travel and cargo routes.</p>
+        <h1 className="text-2xl font-bold text-gray-800">Maamul Magaalooyinka</h1>
+        <p className="text-sm text-gray-500">Kudar meelaha ay tagaan safarrada iyo xamuulka.</p>
         
         <form onSubmit={handleAddLocation} className="mt-6 flex flex-wrap gap-4">
           <input 
             type="text" 
-            placeholder="City Name"
+            placeholder="Magaca Magaalada"
             className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
             value={newLocation.name}
             onChange={(e) => setNewLocation({...newLocation, name: e.target.value})}
@@ -64,14 +64,14 @@ export default function LocationsManager() {
           />
           <input 
             type="text" 
-            placeholder="Code"
+            placeholder="Kood"
             className="w-32 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
             value={newLocation.city_code}
             onChange={(e) => setNewLocation({...newLocation, city_code: e.target.value})}
             required
           />
           <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2">
-            <Plus size={20} /> Add City
+            <Plus size={20} /> Kudar Magaalo
           </button>
         </form>
       </div>
@@ -80,9 +80,9 @@ export default function LocationsManager() {
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="p-4 text-xs font-bold text-gray-400 uppercase">City Name</th>
-              <th className="p-4 text-xs font-bold text-gray-400 uppercase">Code</th>
-              <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">Actions</th>
+              <th className="p-4 text-xs font-bold text-gray-400 uppercase">Magaca Magaalada</th>
+              <th className="p-4 text-xs font-bold text-gray-400 uppercase">Koodka</th>
+              <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">Ficil</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -101,7 +101,7 @@ export default function LocationsManager() {
             ))}
           </tbody>
         </table>
-        {loading && <div className="p-10 text-center text-gray-400">Loading cities...</div>}
+        {loading && <div className="p-10 text-center text-gray-400">Magaalooyinka ayaa soo kacaya...</div>}
       </div>
     </div>
   );

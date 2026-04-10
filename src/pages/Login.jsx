@@ -37,27 +37,27 @@ export default function Login() {
         <form onSubmit={handleLogin} className="w-full max-w-md space-y-6">
           <div className="flex flex-col items-center mb-8">
             <img src={logo} alt="SafaariGroup Logo" className="w-32 h-32 object-contain mb-4" />
-            <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-            <p className="text-gray-500 mt-2">Sign in to manage your logistics engine</p>
+            <h1 className="text-3xl font-bold text-gray-900">Portal-ka Maamulka</h1>
+            <p className="text-gray-500 mt-2">Gudaha gal si aad u maamusho nidaamka Shirkada</p>
           </div>
 
           <div className="space-y-4">
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Iimayl"
               className="w-full p-4 border border-gray-200 rounded-2xl bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               onChange={e => setEmail(e.target.value)}
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Erayga Sirta"
               className="w-full p-4 border border-gray-200 rounded-2xl bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               onChange={e => setPassword(e.target.value)}
             />
           </div>
 
           <button className="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold text-lg hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 transition-all active:scale-[0.98]">
-            Sign In
+            Gudaha Gal
           </button>
         </form>
       </div>
@@ -73,11 +73,11 @@ export default function Login() {
 
         {/* Highlighted Content */}
         <div className="relative z-10 text-center p-12 text-white flex flex-col items-center justify-center">
-          <div className="bg-white/10 p-8 rounded-full backdrop-blur-md border border-white/20 shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-500">
+          <div className="bg-white/10 p-8 rounded-full backdrop-blur-md border border-white/20 shadow-2xl mb-8 transform hover:scale-105 transition-transform duration-500 flex items-center justify-center">
             <img
               src={logo}
               alt="SafaariGroup Logo"
-              className="w-48 h-48 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] filter brightness-0 invert"
+              className="w-48 h-48 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]"
             />
           </div>
           <h2 className="text-5xl font-extrabold mb-4 tracking-tight drop-shadow-lg text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>

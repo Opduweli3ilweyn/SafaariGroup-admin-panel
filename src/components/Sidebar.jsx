@@ -12,13 +12,13 @@ import {
 import { supabase } from '../lib/supabase';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: MapPinned, label: 'Manage Routes', path: '/dashboard/routes' },
-  { icon: MapPin, label: 'Manage Cities', path: '/dashboard/locations' },
-  { icon: Ticket, label: 'Bus Tickets', path: '/dashboard/tickets' },
-  { icon: Package, label: 'Cargo Tracking', path: '/dashboard/cargo' },
-  { icon: Users, label: 'Customers', path: '/dashboard/users' },
-  { icon: Bell, label: 'News & Updates', path: '/dashboard/news' }, // 2. Added News Item
+  { icon: LayoutDashboard, label: 'Shaashadda Guud', path: '/dashboard' },
+  { icon: MapPinned, label: 'Marinnada Safarka', path: '/dashboard/routes' },
+  { icon: MapPin, label: 'Magaalooyinka', path: '/dashboard/locations' },
+  { icon: Ticket, label: 'Tikidhada Basaska', path: '/dashboard/tickets' },
+  { icon: Package, label: 'Dabagalka Xamuulka', path: '/dashboard/cargo' },
+  { icon: Users, label: 'Macaamiisha', path: '/dashboard/users' },
+  { icon: Bell, label: 'Ogeysiisyada', path: '/dashboard/news' }, // 2. Renamed to Broadcast
 ];
 
 export default function Sidebar() {

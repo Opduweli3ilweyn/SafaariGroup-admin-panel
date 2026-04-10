@@ -145,7 +145,7 @@ export default function UserManager() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Customer_List.csv';
+    a.download = 'Macaamiisha.csv';
     a.click();
   };
 
@@ -176,24 +176,24 @@ export default function UserManager() {
       {/* HEADER & ACTIONS */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Customer Base</h1>
-          <p className="text-gray-500 font-medium">Manage and verify all registered travelers.</p>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Macaamiisha</h1>
+          <p className="text-gray-500 font-medium">Maamul iyo xaqiiji dhammaan dadka isdiiwaangeliyey.</p>
         </div>
         <button
           onClick={exportUsers}
           className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-2xl font-bold hover:bg-gray-50 transition-all shadow-sm"
         >
-          <Download size={18} /> Export CSV
+          <Download size={18} /> Soo saar CSV
         </button>
       </div>
 
       {/* QUICK STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-blue-600 p-6 rounded-[32px] text-white shadow-lg">
-          <p className="text-xs font-bold opacity-80 uppercase tracking-widest">Total Members</p>
+          <p className="text-xs font-bold opacity-80 uppercase tracking-widest">Warta Xubnaha</p>
           <h2 className="text-4xl font-black mt-1">{users.length}</h2>
           <div className="mt-4 flex items-center gap-2 text-xs font-bold bg-white/20 p-2 rounded-xl w-fit">
-            <UserCheck size={14} /> Active Database
+            <UserCheck size={14} /> Xogta Isticmaalka
           </div>
         </div>
         {/* Placeholder for other metrics like 'New this Month' */}
@@ -205,13 +205,13 @@ export default function UserManager() {
           <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="Search by name, phone, or email..."
+            placeholder="Ku raadi magaca, taleefanka, ama iimaylka..."
             className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-500 font-medium"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <button className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-500 rounded-2xl font-bold hover:bg-gray-100 transition-all">
-          <Filter size={18} /> Filters
+          <Filter size={18} /> Shaandheyn
         </button>
       </div>
 
@@ -221,10 +221,10 @@ export default function UserManager() {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer Details</th>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contact Info</th>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Joined Date</th>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Role Management</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Xogta Macmiilka</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Xogta Xiriirka</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Taariikhda Biirista</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Maamulka Kaalinta</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -244,10 +244,10 @@ export default function UserManager() {
                   <td className="px-8 py-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <Phone size={14} className="text-blue-500" /> {user.phone || 'N/A'}
+                        <Phone size={14} className="text-blue-500" /> {user.phone || 'Lama helin'}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                        <Mail size={14} /> {user.email}
+                        <Mail size={14} /> {user.email || 'Iimayl majiro'}
                       </div>
                     </div>
                   </td>
@@ -266,9 +266,9 @@ export default function UserManager() {
                             : user.role === 'driver' ? 'bg-green-50 text-green-700 border-green-200 hover:border-green-300'
                               : 'bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-300'}`}
                       >
-                        <option value="user">User</option>
-                        <option value="driver">Driver</option>
-                        <option value="admin">Admin</option>
+                        <option value="user">Isticmaale</option>
+                        <option value="driver">Darawal</option>
+                        <option value="admin">Maamule</option>
                       </select>
 
                       {user.role === 'driver' && (
@@ -277,7 +277,7 @@ export default function UserManager() {
                             onClick={() => openDriverModal(user)}
                             className="flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl hover:bg-blue-100 transition-all border border-blue-200"
                           >
-                            <MapPin size={12} /> Assign Route
+                            <MapPin size={12} /> U qoondee Marin
                           </button>
 
                           {/* Assigned Routes List */}
@@ -304,11 +304,11 @@ export default function UserManager() {
               ))}
             </tbody>
           </table>
-          {loading && <div className="p-20 text-center font-black text-gray-300 animate-pulse uppercase tracking-widest">Syncing Customer Profiles...</div>}
+          {loading && <div className="p-20 text-center font-black text-gray-300 animate-pulse uppercase tracking-widest">Cusboonaysiinta xogta macaamiisha...</div>}
           {!loading && filteredUsers.length === 0 && (
             <div className="p-20 text-center">
               <ShieldAlert size={48} className="mx-auto text-gray-200 mb-4" />
-              <p className="text-gray-400 font-bold">No customers found matching your search.</p>
+              <p className="text-gray-400 font-bold">Wax macmiil ah uma helin raadintaada.</p>
             </div>
           )}
         </div>
@@ -324,8 +324,8 @@ export default function UserManager() {
             >
               <X size={20} />
             </button>
-            <h2 className="text-2xl font-black text-gray-900 mb-1">Assign Route</h2>
-            <p className="text-gray-500 font-medium mb-6">Select a route for <span className="text-gray-900 font-bold">{selectedDriver.full_name}</span></p>
+            <h2 className="text-2xl font-black text-gray-900 mb-1">U qoondee Marin</h2>
+            <p className="text-gray-500 font-medium mb-6">Dooro marin u qoondeynta <span className="text-gray-900 font-bold">{selectedDriver.full_name}</span></p>
 
             <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
               {routes.map(r => (
@@ -339,19 +339,19 @@ export default function UserManager() {
                     <MapPin size={18} />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">{r.origin?.name || 'Unknown'} → {r.destination?.name || 'Unknown'}</p>
+                    <p className="font-bold text-gray-900 text-sm">{r.origin?.name || 'Lama yaqaan'} → {r.destination?.name || 'Lama yaqaan'}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-[10px] text-blue-600 font-bold uppercase bg-blue-50 px-2 py-0.5 rounded-md">
-                        {r.vehicle_type || 'Bus'}
+                        {r.vehicle_type === 'Bus' ? 'Bas' : r.vehicle_type}
                       </p>
                       <p className="text-[10px] text-gray-400 font-bold uppercase">
-                        {r.departure_time ? new Date(r.departure_time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'No Time'}
+                        {r.departure_time ? new Date(r.departure_time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Wakhti majiro'}
                       </p>
                     </div>
                   </div>
                 </button>
               ))}
-              {routes.length === 0 && <p className="text-gray-400 font-bold text-center py-4">No routes available yet.</p>}
+              {routes.length === 0 && <p className="text-gray-400 font-bold text-center py-4">Maya marid hadda diyaar ah.</p>}
             </div>
           </div>
         </div>
