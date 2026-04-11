@@ -43,3 +43,46 @@ export const exportData = (data, fileName, format = 'csv') => {
         downloadFile(jsonContent, `${fileName}.json`, 'application/json;charset=utf-8;');
     }
 };
+
+/**
+ * Generates a unified master report for both Tickets and Cargo
+ */
+export const generateUnifiedMasterReport = (tickets, cargo) => {
+    // 1. Prepare ticket rows
+    const ticketRows = tickets.map((t, index) => ({
+        'No.': '', // Placeholder for sequential number
+        'Saacada': new Date(t.created_at).toLocaleTimeString(),
+        'Nooca': 'TIKIDH',
+        'Magaalada Bixitaanka': t.origin?.name || 'Unknown',
+        'Magaalada Socodka': t.destination?.name || 'Unknown',
+        'Magaca Macmiilka': t.passenger_name,
+        'Qiimaha ($)': t.price_paid || 0,
+        'Xaaladda': t.status.toUpperCase(),
+        '_date': new Date(t.created_at) // For sorting
+    }));
+
+    // 2. Prepare cargo rows
+    const cargoRows = cargo.map((c) => ({
+        'No.': '',
+        'Saacada': new Date(c.created_at).toLocaleTimeString(),
+        'Nooca': 'XAMUUL',
+        'Magaalada Bixitaanka': c.origin?.name || 'Unknown',
+        'Magaalada Socodka': c.destination?.name || 'Unknown',
+        'Magaca Macmiilka': c.sender_name,
+        'Qiimaha ($)': c.price_total || 0,
+        'Xaaladda': c.status.toUpperCase(),
+        '_date': new Date(c.created_at) // For sorting
+    }));
+
+    // 3. Merge and Sort by time
+    const merged = [...ticketRows, ...cargoRows].sort((a, b) => a._date - b._date);
+
+    // 4. Add sequential numbers and remove internal sorting key
+    const finalData = merged.map((row, i) => {
+        const { _date, ...cleanRow } = row;
+        return { 'No.': i + 1, ...cleanRow };
+    });
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    exportData(finalData, `SafaariGroup_Master_Report_${dateStr}`, 'csv');
+};

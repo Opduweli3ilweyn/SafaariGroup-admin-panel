@@ -8,12 +8,17 @@ import UserManager from './pages/UserManager';
 import DashboardHome from './pages/DashboardHome';
 import TicketMonitor from './pages/TicketMonitor.jsx';
 import NewsManager from './pages/NewsManager';
+import DriverManager from './pages/DriverManager'; // New Import
+import IncomingCargo from './pages/IncomingCargo'; // New Import
+import SmsMonitor from './pages/SmsMonitor'; // New Import
 import AdminGuard from './components/AdminGuard'; // Import AdminGuard
+import { UserProvider } from './context/UserContext';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <UserProvider>
+      <BrowserRouter>
+        <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
         
@@ -32,9 +37,13 @@ export default function App() {
           <Route path="tickets" element={<TicketMonitor />} />
           <Route path="cargo" element={<CargoManager />} />
           <Route path="users" element={<UserManager />} />
+          <Route path="drivers" element={<DriverManager />} />
+          <Route path="incoming" element={<IncomingCargo />} />
+          <Route path="sms" element={<SmsMonitor />} />
           <Route path="news" element={<NewsManager />} /> 
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </UserProvider>
   );
 }

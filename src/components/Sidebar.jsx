@@ -5,23 +5,30 @@ import {
   MapPin, 
   Package, 
   Users, 
+  UserCheck,
   LogOut, 
   Ticket,
-  Bell // 1. Added Bell Icon for News
+  Bell, // 1. Added Bell Icon for News
+  MessageSquare // For SMS logs
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Shaashadda Guud', path: '/dashboard' },
-  { icon: MapPinned, label: 'Marinnada Safarka', path: '/dashboard/routes' },
-  { icon: MapPin, label: 'Magaalooyinka', path: '/dashboard/locations' },
-  { icon: Ticket, label: 'Tikidhada Basaska', path: '/dashboard/tickets' },
-  { icon: Package, label: 'Dabagalka Xamuulka', path: '/dashboard/cargo' },
-  { icon: Users, label: 'Macaamiisha', path: '/dashboard/users' },
-  { icon: Bell, label: 'Ogeysiisyada', path: '/dashboard/news' }, // 2. Renamed to Broadcast
+  { icon: LayoutDashboard, label: 'Dashboard / Booska', path: '/dashboard' },
+  { icon: Users, label: 'Users / Macaamiisha', path: '/dashboard/users', globalOnly: true },
+  { icon: MapPinned, label: 'Routes / Jidadka', path: '/dashboard/routes', globalOnly: true },
+  { icon: MapPin, label: 'City / Magaalo', path: '/dashboard/locations', globalOnly: true },
+  { icon: Ticket, label: 'Tickets / Tikidhada', path: '/dashboard/tickets' },
+  { icon: Package, label: 'Cargo / Xamuulka', path: '/dashboard/cargo' },
+  { icon: Package, label: 'Incoming Cargo / Soo Socda', path: '/dashboard/incoming' },
+  { icon: UserCheck, label: 'Drivers / Darawalada', path: '/dashboard/drivers' },
+  { icon: MessageSquare, label: 'SMS Log / Fariimaha', path: '/dashboard/sms' },
+  { icon: Bell, label: 'News / Wararka', path: '/dashboard/news' },
 ];
 
 export default function Sidebar() {
+  const { user: currentUser } = useUser();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -39,8 +46,10 @@ export default function Sidebar() {
 
       <nav className="flex-1 px-4 space-y-2">
         {menuItems.map((item) => {
-          // Changed to 'startsWith' to keep the parent link active when on sub-pages
-          const isActive = location.pathname === item.path;
+          // Hide global-only items if user is a Branch Admin (they have a branch_id)
+          if (item.globalOnly && currentUser?.branch_id) return null;
+          
+          const isActive = location.pathname + location.search === item.path;
           return (
             <Link
               key={item.path}
@@ -64,7 +73,7 @@ export default function Sidebar() {
           className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 w-full rounded-lg transition-colors"
         >
           <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+          <span className="font-medium">Logout / Ka Bax</span>
         </button>
       </div>
     </aside>

@@ -10,7 +10,13 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    // Invisible unique Username handling constraint!
+    const formattedEmail = email.includes('@') 
+      ? email.trim() 
+      : `${email.toLowerCase().trim()}@safaarigroup.local`;
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email: formattedEmail, password });
 
     if (error) alert(error.message);
     else {
@@ -43,10 +49,11 @@ export default function Login() {
 
           <div className="space-y-4">
             <input
-              type="email"
-              placeholder="Iimayl"
-              className="w-full p-4 border border-gray-200 rounded-2xl bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              type="text"
+              placeholder="Username ama Iimayl"
+              className="w-full p-4 border border-gray-200 rounded-2xl bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
               onChange={e => setEmail(e.target.value)}
+              required
             />
             <input
               type="password"

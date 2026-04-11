@@ -13,10 +13,12 @@ import {
   X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { exportData } from '../lib/exportUtils';
+import { exportData, generateUnifiedMasterReport } from '../lib/exportUtils';
 import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 
 export default function DashboardHome() {
+  const { user: currentUser } = useUser();
   const [activeTable, setActiveTable] = useState('profiles');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,19 +26,60 @@ export default function DashboardHome() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState('csv');
   const [stats, setStats] = useState({
-    totalRev: 0, ticketSales: 0, cargoSales: 0,
-    userCount: 0, cargoCount: 0, ticketCount: 0,
-    branchCount: 0, activeRoutes: 0
+    totalRev: 0, 
+    dailyRev: 0, 
+    weeklyRev: 0, 
+    monthlyRev: 0,
+    ticketSales: 0, 
+    cargoSales: 0,
+    userCount: 0, 
+    cargoCount: 0, 
+    ticketCount: 0,
+    branchCount: 0, 
+    activeRoutes: 0
   });
+
+  const [rawTickets, setRawTickets] = useState([]);
+  const [rawCargo, setRawCargo] = useState([]);
 
   const coreTables = ['profiles', 'cargo_shipments', 'tickets', 'locations', 'routes'];
 
-  useEffect(() => { fetchGlobalInsights(); }, []);
+  useEffect(() => { 
+    fetchGlobalInsights(); 
+    
+    // Real-time stats subscription
+    const channel = supabase
+      .channel('dashboard-stats-real-time')
+      .on('postgres_changes', { event: '*', table: 'tickets' }, () => fetchGlobalInsights())
+      .on('postgres_changes', { event: '*', table: 'cargo_shipments' }, () => fetchGlobalInsights())
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
   useEffect(() => { fetchTableData(); }, [activeTable]);
 
   async function fetchGlobalInsights() {
     try {
-      // Efficiently fetch counts and raw data for sum
+      const now = new Date();
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+      
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - 7);
+      
+      const startOfMonth = new Date(now);
+      startOfMonth.setDate(now.getDate() - 30);
+
+      // 1. Fetch relevant tickets and cargo with origin/destination names for the master report
+      let ticketQuery = supabase.from('tickets').select('*, origin:locations!origin_id(name), destination:locations!destination_id(name)').in('status', ['confirmed', 'pending_verification']);
+      let cargoQuery = supabase.from('cargo_shipments').select('*, origin:locations!origin_id(name), destination:locations!destination_id(name)').in('status', ['confirmed', 'pending_verification']);
+
+      // 1b. Apply Branch Isolation if not a Global Manager
+      if (currentUser?.branch_id) {
+        ticketQuery = ticketQuery.or(`origin_id.eq.${currentUser.branch_id},destination_id.eq.${currentUser.branch_id}`);
+        cargoQuery = cargoQuery.or(`origin_id.eq.${currentUser.branch_id},destination_id.eq.${currentUser.branch_id}`);
+      }
+
       const [
         { data: tickets },
         { data: cargo },
@@ -44,20 +87,39 @@ export default function DashboardHome() {
         { count: branchCount },
         { count: routeCount }
       ] = await Promise.all([
-        supabase.from('tickets').select('price_paid'),
-        supabase.from('cargo_shipments').select('price_total'),
+        ticketQuery,
+        cargoQuery,
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('locations').select('*', { count: 'exact', head: true }),
         supabase.from('routes').select('*', { count: 'exact', head: true })
       ]);
 
-      const tRev = tickets?.reduce((a, b) => a + Number(b.price_paid || 0), 0) || 0;
-      const cRev = cargo?.reduce((a, b) => a + Number(b.price_total || 0), 0) || 0;
+      setRawTickets(tickets || []);
+      setRawCargo(cargo || []);
+
+      // 2. Sum revenue logic
+      const calculateRev = (list, dateFilter = null) => {
+        let filtered = list?.filter(item => item.status === 'confirmed') || [];
+        if (dateFilter) {
+          filtered = filtered.filter(item => new Date(item.created_at) >= dateFilter);
+        }
+        return filtered.reduce((a, b) => a + Number(b.price_paid || b.price_total || 0), 0);
+      };
+
+      const tRevTotal = calculateRev(tickets);
+      const cRevTotal = calculateRev(cargo);
+      
+      const dailyRev = calculateRev(tickets, startOfToday) + calculateRev(cargo, startOfToday);
+      const weeklyRev = calculateRev(tickets, startOfWeek) + calculateRev(cargo, startOfWeek);
+      const monthlyRev = calculateRev(tickets, startOfMonth) + calculateRev(cargo, startOfMonth);
 
       setStats({
-        totalRev: tRev + cRev,
-        ticketSales: tRev,
-        cargoSales: cRev,
+        totalRev: tRevTotal + cRevTotal,
+        dailyRev,
+        weeklyRev,
+        monthlyRev,
+        ticketSales: tRevTotal,
+        cargoSales: cRevTotal,
         userCount: userCount || 0,
         cargoCount: cargo?.length || 0,
         ticketCount: tickets?.length || 0,
@@ -100,7 +162,9 @@ export default function DashboardHome() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Safaari Admin</h1>
-          <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">Xogta Guud & Maamulka Maaliyadda</p>
+          <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">
+            {currentUser?.branch ? `${currentUser.branch.name} Office / Xarunta ${currentUser.branch.name}` : 'Global Overview / Maamulka Guud'}
+          </p>
         </div>
         <button
           onClick={() => setIsExportModalOpen(true)}
@@ -112,7 +176,15 @@ export default function DashboardHome() {
 
       {/* FINANCIAL INSIGHTS SECTION */}
       <div className="space-y-6">
-        <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Warbixinta Maaliyadda</h2>
+        <div className="flex justify-between items-end">
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Warbixinta Maaliyadda</h2>
+          <button 
+            onClick={() => generateUnifiedMasterReport(rawTickets, rawCargo)}
+            className="flex items-center gap-2 text-blue-600 font-black uppercase text-[10px] hover:bg-blue-50 px-4 py-2 rounded-xl transition-all"
+          >
+            <Download size={14} /> Soo Deji Doc Master (Maanta)
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <IncomeCard
             label="Dakhliga Guud ee Shirkada"
@@ -132,6 +204,33 @@ export default function DashboardHome() {
             type="CARGO"
             detail={`${stats.cargoCount} Xamuul La Diray`}
           />
+        </div>
+      </div>
+
+      {/* TIME-BASED STATS SECTION */}
+      <div className="bg-gray-900 p-10 rounded-[48px] shadow-2xl space-y-8 relative overflow-hidden">
+        <div className="relative z-10">
+          <h2 className="text-blue-400 font-black uppercase text-[10px] tracking-widest mb-6">Madaxtooyada Maaliyadda (Performance)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div>
+              <p className="text-gray-500 font-black uppercase text-[10px] mb-2 tracking-widest">Maanta (Daily - from Midnight)</p>
+              <h4 className="text-5xl font-black text-white tracking-tighter">${stats.dailyRev.toLocaleString()}</h4>
+              <p className="text-emerald-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Wadarta dakhliga Maanta</p>
+            </div>
+            <div className="border-l border-gray-800 pl-12">
+              <p className="text-gray-500 font-black uppercase text-[10px] mb-2 tracking-widest">Toddobaadkan (Weekly)</p>
+              <h4 className="text-5xl font-black text-white tracking-tighter">${stats.weeklyRev.toLocaleString()}</h4>
+              <p className="text-blue-400 text-[10px] font-bold mt-2 uppercase tracking-widest">7-bari ee u dambaysay</p>
+            </div>
+            <div className="border-l border-gray-800 pl-12">
+              <p className="text-gray-500 font-black uppercase text-[10px] mb-2 tracking-widest">Bishan (Monthly)</p>
+              <h4 className="text-5xl font-black text-white tracking-tighter">${stats.monthlyRev.toLocaleString()}</h4>
+              <p className="text-indigo-400 text-[10px] font-bold mt-2 uppercase tracking-widest">30-bari ee u dambaysay</p>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 p-12 opacity-5">
+           <BarChart3 size={300} className="text-white" />
         </div>
       </div>
 
